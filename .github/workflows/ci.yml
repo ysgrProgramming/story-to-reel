@@ -29,15 +29,15 @@ jobs:
 
       - name: Install dependencies
         run: |
-          uv pip install -e ".[dev]"
+          uv pip install --system -e ".[dev]"
 
       - name: Run ruff lint
         run: |
-          uv run ruff check . --select E,F --output-format=github
+          ruff check . --select E,F --output-format=github
 
       - name: Run pytest
         run: |
-          uv run pytest --cov=app --cov-report=term-missing --cov-report=xml
+          pytest --cov=app --cov-report=term-missing --cov-report=xml
 
       - name: Upload coverage to Codecov (optional)
         if: matrix.python-version == '3.11'
