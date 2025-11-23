@@ -5,8 +5,13 @@ from pathlib import Path
 # MoviePy 2.x uses different import paths - try direct imports first
 try:
     # MoviePy 2.x - direct imports
-    from moviepy import AudioFileClip, ImageClip, TextClip, concatenate_videoclips
-    from moviepy.video.compositing import CompositeVideoClip
+    from moviepy import (
+        AudioFileClip,
+        CompositeVideoClip,
+        ImageClip,
+        TextClip,
+        concatenate_videoclips,
+    )
 except ImportError:
     # Fallback for MoviePy 1.x - editor module
     try:
@@ -97,8 +102,7 @@ class MoviePyVideoComposer:
                 audio_codec="aac",
                 temp_audiofile=str(output_path.parent / f"temp_audio_{output_path.stem}.m4a"),
                 remove_temp=True,
-                verbose=False,
-                logger=None,
+                # MoviePy 2.x: verbose and logger parameters removed
             )
 
             # Cleanup
@@ -131,10 +135,9 @@ class MoviePyVideoComposer:
 
         bg_path = assets[bg_key]
 
-        # Create background clip
-        bg_clip = ImageClip(str(bg_path))
-        bg_clip = bg_clip.set_duration(scene.duration_seconds)
-        bg_clip = bg_clip.resize((self.width, self.height))
+        # Create background clip with duration (MoviePy 2.x API)
+        bg_clip = ImageClip(str(bg_path), duration=scene.duration_seconds)
+        bg_clip = bg_clip.resized((self.width, self.height))
 
         # Create subtitle clip
         subtitle_clip = self._create_subtitle_clip(scene, scene.duration_seconds)
@@ -147,15 +150,15 @@ class MoviePyVideoComposer:
                 audio_clip = AudioFileClip(str(assets[audio_key]))
                 # Adjust audio duration to match scene
                 if audio_clip.duration > scene.duration_seconds:
-                    audio_clip = audio_clip.subclip(0, scene.duration_seconds)
+                    audio_clip = audio_clip.subclipped(0, scene.duration_seconds)  # MoviePy 2.x: subclip -> subclipped
                 elif audio_clip.duration < scene.duration_seconds:
                     # Loop audio if shorter than scene duration
                     loops = int(scene.duration_seconds / audio_clip.duration) + 1
                     audio_clip = concatenate_videoclips(
                         [audio_clip] * loops
-                    ).subclip(0, scene.duration_seconds)
+                    ).subclipped(0, scene.duration_seconds)  # MoviePy 2.x: subclip -> subclipped
 
-                bg_clip = bg_clip.set_audio(audio_clip)
+                bg_clip = bg_clip.with_audio(audio_clip)
             except Exception as e:
                 # If audio loading fails, continue without audio
                 print(f"Warning: Failed to load audio for scene {scene.scene_number}: {e}")
@@ -181,22 +184,24 @@ class MoviePyVideoComposer:
         try:
             # Create text clip with font if available
             text_params = {
-                "txt": scene.display_text,
-                "fontsize": 70,
+                "text": scene.display_text,  # MoviePy 2.x: txt -> text
+                "font_size": 70,  # MoviePy 2.x: fontsize -> font_size
                 "color": "white",
                 "method": "caption",
-                "size": (self.width * 0.8, None),
-                "align": "center",
+                "size": (int(self.width * 0.8), None),  # MoviePy 2.x: width must be int
+                # MoviePy 2.x: align parameter removed, use with_position instead
             }
 
-            if self.font_path:
+            # Only add font if it's a valid path
+            if self.font_path and Path(self.font_path).exists():
                 text_params["font"] = self.font_path
 
+            # Add duration to text_params for MoviePy 2.x API
+            text_params["duration"] = duration
             subtitle_clip = TextClip(**text_params)
-            subtitle_clip = subtitle_clip.set_duration(duration)
-            subtitle_clip = subtitle_clip.set_position(("center", "bottom"))
-            subtitle_clip = subtitle_clip.set_margin(
-                bottom=int(self.height * 0.1), top=0
+            # MoviePy 2.x: with_margin() removed, use position with offset instead
+            subtitle_clip = subtitle_clip.with_position(
+                ("center", self.height - int(self.height * 0.1))
             )
 
             return subtitle_clip
@@ -206,16 +211,16 @@ class MoviePyVideoComposer:
             print(f"Warning: Failed to create subtitle with font: {e}")
             subtitle_clip = TextClip(
                 scene.display_text,
-                fontsize=50,
+                font_size=50,  # MoviePy 2.x: fontsize -> font_size
                 color="white",
-                size=(self.width * 0.8, None),
+                size=(int(self.width * 0.8), None),  # MoviePy 2.x: width must be int
                 method="caption",
-                align="center",
+                # MoviePy 2.x: align parameter removed, use with_position instead
+                duration=duration,  # MoviePy 2.x API
             )
-            subtitle_clip = subtitle_clip.set_duration(duration)
-            subtitle_clip = subtitle_clip.set_position(("center", "bottom"))
-            subtitle_clip = subtitle_clip.set_margin(
-                bottom=int(self.height * 0.1), top=0
+            # MoviePy 2.x: with_margin() removed, use position with offset instead
+            subtitle_clip = subtitle_clip.with_position(
+                ("center", self.height - int(self.height * 0.1))
             )
 
             return subtitle_clip

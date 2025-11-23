@@ -73,7 +73,23 @@ OPENAI_API_KEY=your_api_key_here
 
 ## 使用方法
 
-### コマンドライン実行
+### CLIコマンド（推奨）
+
+プロジェクトをインストール後、`story-to-reel`コマンドが利用可能になります：
+
+```bash
+# 基本的な使用方法
+story-to-reel generate "これはテストです。動画が生成されます。" --output output.mp4
+
+# オプション付き
+story-to-reel generate "テキスト" -o output.mp4 --width 1920 --height 1080 --use-openai
+
+# ヘルプ表示
+story-to-reel --help
+story-to-reel generate --help
+```
+
+### 従来のCLI（互換性のため残されています）
 
 ```bash
 python main.py "これはテストです。動画が生成されます。" output.mp4
@@ -129,8 +145,9 @@ pytest tests/test_models.py
   /models     # Pydanticモデル (VideoScript, Scene等)
   /services   # 具体的な実装
   /api        # FastAPIのエンドポイント
+  /cli.py     # Click CLIインターフェース
 /tests        # pytestテストスイート
-main.py       # メインエントリーポイント
+main.py       # 従来のCLIエントリーポイント（互換性のため）
 example.py    # 使用例
 pyproject.toml # プロジェクト設定（uv/pip）
 ```

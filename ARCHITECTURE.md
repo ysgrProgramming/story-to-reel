@@ -8,18 +8,31 @@ This document provides an overview of the project structure for LLM-assisted dev
 story-to-reel/
 ├── app/                    # Main application package
 │   ├── api/               # FastAPI endpoints and routing
+│   ├── cli.py             # Click CLI interface
 │   ├── core/              # Core configuration and utilities
 │   ├── interfaces/        # Abstract interfaces (Protocols)
 │   ├── models/            # Pydantic data models
 │   └── services/          # Concrete implementations
 ├── tests/                 # Pytest test suite
-├── main.py               # CLI entry point
+├── main.py               # Legacy CLI entry point (for compatibility)
 ├── example.py            # Usage example
 └── pyproject.toml        # Project configuration (uv/pip)
 
 ```
 
 ## Module Descriptions
+
+### `/app/cli.py` - Command Line Interface
+
+**Purpose**: Click-based CLI for video generation from command line.
+
+- Provides `story-to-reel` command after installation
+- `generate` subcommand: Generate video from text input
+- Options: `--output`, `--use-openai`, `--width`, `--height`, `--mock-llm`
+
+**Usage**: `story-to-reel generate "text" --output output.mp4`
+
+---
 
 ### `/app/api/` - FastAPI HTTP API
 
@@ -112,10 +125,17 @@ story-to-reel/
 
 ## Data Flow
 
-1. **Input**: Text string (via CLI or API)
+1. **Input**: Text string (via CLI, Click CLI, or API)
 2. **Script Generation**: `ScriptGenerator` uses `LLMProvider` → produces `VideoScript`
 3. **Asset Generation**: `AssetManager` creates audio files and background images per scene
 4. **Video Composition**: `VideoComposer` combines assets → outputs MP4 file
+
+## Entry Points
+
+- **Click CLI**: `story-to-reel generate "text"` (recommended, via `app/cli.py`)
+- **Legacy CLI**: `python main.py "text" output.mp4` (for compatibility)
+- **API**: `uvicorn app.api.main:app` (FastAPI server)
+- **Programmatic**: `generate_video_from_text()` function in `app/services/video_generator.py`
 
 ## Extension Points
 

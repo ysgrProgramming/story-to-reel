@@ -7,6 +7,7 @@ Quick reference for LLM-assisted development. See ARCHITECTURE.md for detailed d
 ```
 app/
 ├── api/          → FastAPI HTTP endpoints (POST /generate, GET /video)
+├── cli.py        → Click CLI interface (story-to-reel command)
 ├── core/         → Config (Settings, FontManager) - environment vars, font detection
 ├── interfaces/   → Protocols (LLMProvider, AssetManager, VideoComposer) - extensibility points
 ├── models/       → Pydantic (Scene, VideoScript) - data structures
@@ -16,9 +17,10 @@ app/
 ## Key Files
 
 ### Entry Points
-- `main.py` - CLI entry point (`python main.py "text" output.mp4`)
+- `app/cli.py` - Click CLI (`story-to-reel generate "text" --output output.mp4`) - **Recommended**
+- `main.py` - Legacy CLI entry point (`python main.py "text" output.mp4`) - For compatibility
 - `app/api/main.py` - FastAPI app (`uvicorn app.api.main:app`)
-- `app/services/video_generator.py` - Main orchestration function
+- `app/services/video_generator.py` - Main orchestration function (programmatic use)
 
 ### Core Logic
 - `app/services/script_generator.py` - Text → VideoScript conversion
